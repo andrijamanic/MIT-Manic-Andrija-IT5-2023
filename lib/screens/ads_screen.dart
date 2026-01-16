@@ -1,22 +1,30 @@
 import 'package:flutter/material.dart';
+import 'ads_detail_screen.dart';
 
-class AdsScreen extends StatelessWidget {
+class AdsScreen extends StatefulWidget {
   const AdsScreen({super.key});
 
-  // Placeholder oglasi po kategorijama
+  @override
+  State<AdsScreen> createState() => _AdsScreenState();
+}
+
+class _AdsScreenState extends State<AdsScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   final Map<String, List<Map<String, String>>> adsByCategory = const {
     'Stanovi': [
       {
         'title': 'Jednosoban stan',
         'description': 'Beograd, Vračar, 35m²',
         'price': '400€',
-        'image': 'https://via.placeholder.com/150'
+        'category': 'Stanovi',
       },
       {
         'title': 'Dvosoban stan',
         'description': 'Novi Sad, 55m²',
         'price': '550€',
-        'image': 'https://via.placeholder.com/150'
+        'category': 'Stanovi',
       },
     ],
     'Prakse': [
@@ -24,13 +32,7 @@ class AdsScreen extends StatelessWidget {
         'title': 'IT praksa',
         'description': 'Frontend developer, Beograd',
         'price': 'Besplatno',
-        'image': 'https://via.placeholder.com/150'
-      },
-      {
-        'title': 'Marketing praksa',
-        'description': 'Digital marketing, Novi Sad',
-        'price': 'Besplatno',
-        'image': 'https://via.placeholder.com/150'
+        'category': 'Prakse',
       },
     ],
     'Ostalo': [
@@ -38,87 +40,97 @@ class AdsScreen extends StatelessWidget {
         'title': 'Bicikl',
         'description': 'Road bike, korišćen',
         'price': '150€',
-        'image': 'https://via.placeholder.com/150'
-      },
-      {
-        'title': 'Fudbalska lopta',
-        'description': 'Adidas, original',
-        'price': '50€',
-        'image': 'https://via.placeholder.com/150'
+        'category': 'Ostalo',
       },
     ],
   };
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            child: const TabBar(
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.black54,
-              indicatorColor: Colors.black,
-              tabs: [
-                Tab(text: 'Stanovi'),
-                Tab(text: 'Prakse'),
-                Tab(text: 'Ostalo'),
-              ],
-            ),
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          labelColor: Colors.black,
+          tabs: const [
+            Tab(text: 'Stanovi'),
+            Tab(text: 'Prakse'),
+            Tab(text: 'Ostalo'),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildAdList(context, adsByCategory['Stanovi']!),
+              _buildAdList(context, adsByCategory['Prakse']!),
+              _buildAdList(context, adsByCategory['Ostalo']!),
+            ],
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildAdList(adsByCategory['Stanovi']!),
-                _buildAdList(adsByCategory['Prakse']!),
-                _buildAdList(adsByCategory['Ostalo']!),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // Funkcija za pravljenje liste oglasa
-  Widget _buildAdList(List<Map<String, String>> ads) {
+  Widget _buildAdList(BuildContext context, List<Map<String, String>> ads) {
     return ListView.builder(
       padding: const EdgeInsets.all(10),
       itemCount: ads.length,
       itemBuilder: (context, index) {
         final ad = ads[index];
+
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          elevation: 4,
           child: ListTile(
-            leading: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Icon(Icons.image, color: Colors.grey),
-            ),
             title: Text(
               ad['title']!,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(ad['description']!),
-                const SizedBox(height: 5),
+                const SizedBox(height: 6),
                 Text(
                   ad['price']!,
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.green),
                 ),
+                if (ad['category'] == 'Stanovi')
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Rezervacija (frontend placeholder)'),
+                          ),
+                        );
+                      },
+                      child: const Text('Rezerviši'),
+                    ),
+                  ),
               ],
             ),
-            isThreeLine: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AdDetailScreen(ad: ad),
+                ),
+              );
+            },
           ),
         );
       },
