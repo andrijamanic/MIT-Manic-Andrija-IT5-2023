@@ -1,0 +1,46 @@
+import 'package:flutter/material.dart';
+import 'consts/app_colors.dart';
+
+class Styles {
+  static ThemeData themeData({
+    required bool isDarkTheme,
+    required BuildContext context,
+  }) {
+    return ThemeData(
+      scaffoldBackgroundColor: isDarkTheme
+          ? AppColors.darkScaffoldColor
+          : AppColors.lightScaffoldColor,
+      cardColor: isDarkTheme ? Colors.grey[800] : AppColors.lightCardColor,
+      brightness: isDarkTheme ? Brightness.dark : Brightness.light,
+      appBarTheme: AppBarTheme(
+        iconTheme: IconThemeData(
+          color: isDarkTheme ? Colors.white : Colors.black,
+        ),
+        backgroundColor: isDarkTheme
+            ? AppColors.darkScaffoldColor
+            : AppColors.lightScaffoldColor,
+        elevation: 0,
+        titleTextStyle: TextStyle(
+          color: isDarkTheme ? Colors.white : Colors.black,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        contentPadding: const EdgeInsets.all(10),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(width: 1, color: Colors.transparent),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(
+            width: 1,
+            color: isDarkTheme ? Colors.white : Colors.black,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+}

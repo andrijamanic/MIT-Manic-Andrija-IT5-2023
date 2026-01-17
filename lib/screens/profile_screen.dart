@@ -1,91 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/profile_option_title.dart';
+import '../screens/add_ads_screen.dart';
 import '../providers/user_provider.dart';
+import '../providers/theme_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final String username;
+  final String? username; // nullable
 
   const ProfileScreen({super.key, required this.username});
 
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Moj profil',
-            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+    final textColor =
+        Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
+
+    if (!userProvider.isLoggedIn || username == null) {
+      // Ako korisnik nije ulogovan, pokaži poruku
+      return Scaffold(
+        body: Center(
+          child: Text(
+            'Morate da se ulogujete da vidite profil',
+            style: TextStyle(fontSize: 18, color: textColor),
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 25,
-                child: Icon(Icons.person, size: 30),
-              ),
-              const SizedBox(width: 15),
-              Text(
-                username,
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          _buildProfileOption(
-            icon: Icons.add_circle_outline,
-            title: 'Dodaj oglas',
-            onTap: () {
-              // kasnije: AddAdScreen
-            },
-          ),
-          _buildProfileOption(
-            icon: Icons.list_alt,
-            title: 'Moji oglasi',
-            onTap: () {
-              // kasnije: MyAdsScreen
-            },
-          ),
-          _buildProfileOption(
-            icon: Icons.bookmark_border,
-            title: 'Moje rezervacije',
-            onTap: () {
-              // kasnije: ReservationsScreen
-            },
-          ),
-          const Spacer(),
-          Center(
-            child: ElevatedButton(
-              onPressed: () {
-                userProvider.logout();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              child: const Text('Logout'),
-            ),
-          ),
-        ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profil'),
       ),
-    );
-  }
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Zdravo korisniče
+            Text(
+              'Zdravo, $username!',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 25),
 
-  Widget _buildProfileOption({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: onTap,
+            /// ===== OPCIJE PROFILA =====
+            ProfileOptionTile(
+              text: 'Dodaj oglas',
+              icon: Icons.add,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AddAdScreen()),
+                );
+              },
+            ),
+            ProfileOptionTile(
+              text: 'Moji oglasi',
+              icon: Icons.list,
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Moji oglasi (placeholder)'),
+                  ),
+                );
+              },
+            ),
+            ProfileOptionTile(
+              text: 'Moje rezervacije',
+              icon: Icons.calendar_today,
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Moje rezervacije (placeholder)'),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 30),
+
+            /// ===== TEMA =====
+            Text(
+              'Podešavanja',
+              style: TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+            ),
+            const SizedBox(height: 10),
+
+            Card(
+              child: ListTile(
+                leading: Icon(Icons.dark_mode),
+                title: Text('Tamna tema', style: TextStyle(color: textColor)),
+                trailing: Switch(
+                  value: themeProvider.isDarkTheme,
+                  onChanged: (value) {
+                    themeProvider.toggleTheme();
+                  },
+                ),
+              ),
+            ),
+
+            const Spacer(),
+
+            /// ===== LOGOUT =====
+            ProfileOptionTile(
+              text: 'Logout',
+              icon: Icons.logout,
+              onTap: () {
+                userProvider.logout();
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

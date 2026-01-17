@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'register_screen.dart';
 import '../providers/user_provider.dart';
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,96 +12,81 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  String? _error;
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-
-    // AKO JE ULOGOVAN → prikaz Logout
-    if (userProvider.isLoggedIn) {
-      return Center(
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'Ulogovani ste kao:',
-              style: TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              userProvider.username!,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            const Text(
+              'Login',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 30),
-            ElevatedButton(
+
+            // KORISNIČKO IME
+            TextField(
+              controller: usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Korisničko ime',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 15),
+
+            // ŠIFRA
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Šifra',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 25),
+
+            // LOGIN DUGME
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  final userProvider =
+                      Provider.of<UserProvider>(context, listen: false);
+
+                  // Placeholder login: postavi bilo šta kao username
+                  userProvider.login(usernameController.text);
+
+                  // Zamenjujemo trenutni ekran HomeScreen-om da se sve osveži
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  );
+                },
+                child: const Text('Uloguj se'),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // REGISTRACIJA
+            TextButton(
               onPressed: () {
-                userProvider.logout();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RegisterScreen(),
+                  ),
+                );
               },
-              child: const Text('Logout'),
+              child: const Text('Nemaš nalog? Registruj se'),
             ),
           ],
         ),
-      );
-    }
-
-    // AKO NIJE ULOGOVAN → login forma
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'Login',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 30),
-          TextField(
-            controller: _usernameController,
-            decoration: const InputDecoration(
-              labelText: 'Username',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Password',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (_error != null)
-            Text(
-              _error!,
-              style: const TextStyle(color: Colors.red),
-            ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              final username = _usernameController.text.trim();
-              final password = _passwordController.text.trim();
-
-              if (username.isEmpty || password.isEmpty) {
-                setState(() {
-                  _error = 'Popunite sva polja';
-                });
-              } else {
-                userProvider.login(username);
-                setState(() {
-                  _error = null;
-                  _usernameController.clear();
-                  _passwordController.clear();
-                });
-              }
-            },
-            child: const Text('Login'),
-          ),
-        ],
       ),
     );
   }
