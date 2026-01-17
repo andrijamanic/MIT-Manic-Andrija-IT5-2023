@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../consts/validator.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -8,9 +9,10 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final emailController = TextEditingController();
-  final usernameController = TextEditingController();
-  final passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
+            // EMAIL
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
@@ -28,6 +31,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 15),
+
+            // KORISNIČKO IME
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
@@ -36,20 +41,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 15),
+
+            // ŠIFRA sa sakrij/prikaži
             TextField(
               controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
                 labelText: 'Šifra',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 25),
+
+            // REGISTRACIJA DUGME
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // placeholder register
+                  // Validatori
+                  final emailError =
+                      MyValidators.emailValidator(emailController.text);
+                  final usernameError = MyValidators.displayNameValidator(
+                      usernameController.text);
+                  final passwordError =
+                      MyValidators.passwordValidator(passwordController.text);
+
+                  if (emailError != null ||
+                      usernameError != null ||
+                      passwordError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content:
+                            Text(emailError ?? usernameError ?? passwordError!),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Placeholder register - samo se vraća nazad
                   Navigator.pop(context);
                 },
                 child: const Text('Registruj se'),

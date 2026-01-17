@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../widgets/profile_option_title.dart';
 import '../screens/add_ads_screen.dart';
+import '../screens/home_screen.dart';
 import '../providers/user_provider.dart';
 import '../providers/theme_provider.dart';
 
@@ -111,13 +112,24 @@ class ProfileScreen extends StatelessWidget {
             const Spacer(),
 
             /// ===== LOGOUT =====
-            ProfileOptionTile(
-              text: 'Logout',
-              icon: Icons.logout,
-              onTap: () {
-                userProvider.logout();
-                Navigator.pop(context);
-              },
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  userProvider.logout();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  );
+                },
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+              ),
             ),
           ],
         ),

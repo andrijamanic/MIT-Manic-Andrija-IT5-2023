@@ -7,9 +7,17 @@ class UserProvider extends ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   String? get username => _username;
 
+  bool get isGuest => _username == "Gost"; // proveravamo da li je gost
+
   void login(String username) {
     _isLoggedIn = true;
     _username = username;
+    notifyListeners();
+  }
+
+  void loginAsGuest() {
+    _isLoggedIn = true;
+    _username = "Gost";
     notifyListeners();
   }
 

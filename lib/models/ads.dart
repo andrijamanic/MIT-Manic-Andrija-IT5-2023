@@ -4,6 +4,7 @@ class Ad {
   final String description;
   final String price;
   final String category;
+  final String location;
 
   Ad({
     required this.id,
@@ -11,6 +12,7 @@ class Ad {
     required this.description,
     required this.price,
     required this.category,
+    required this.location,
   });
 }
 
@@ -22,6 +24,7 @@ final List<Ad> dummyAds = [
     description: 'Beograd, Vračar, 35m²',
     price: '400€',
     category: 'Stanovi',
+    location: 'Beograd',
   ),
   Ad(
     id: '2',
@@ -29,6 +32,7 @@ final List<Ad> dummyAds = [
     description: 'Novi Sad, 55m²',
     price: '550€',
     category: 'Stanovi',
+    location: 'Novi Sad',
   ),
   Ad(
     id: '3',
@@ -36,6 +40,7 @@ final List<Ad> dummyAds = [
     description: 'Frontend developer, Beograd',
     price: 'Besplatno',
     category: 'Prakse',
+    location: 'Beograd',
   ),
   Ad(
     id: '4',
@@ -43,5 +48,6 @@ final List<Ad> dummyAds = [
     description: 'Road bike, korišćen',
     price: '150€',
     category: 'Ostalo',
+    location: 'Beograd',
   ),
 ];

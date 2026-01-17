@@ -32,65 +32,71 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('OGLASI'),
       ),
       body: _buildBody(userProvider, textColor),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        selectedItemColor: selectedColor,
-        unselectedItemColor: unselectedColor,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.login, color: iconColor),
-            label: 'Login',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list, color: iconColor),
-            label: 'Oglasi',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person, color: iconColor),
-            label: 'Profil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat, color: iconColor),
-            label: 'Chat',
-          ),
-        ],
-      ),
+      bottomNavigationBar: userProvider.isLoggedIn
+          ? BottomNavigationBar(
+              currentIndex: _currentIndex,
+              selectedItemColor: selectedColor,
+              unselectedItemColor: unselectedColor,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.list, color: iconColor),
+                  label: 'Oglasi',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person, color: iconColor),
+                  label: 'Profil',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.chat, color: iconColor),
+                  label: 'Chat',
+                ),
+              ],
+            )
+          : null,
     );
   }
 
   Widget _buildBody(UserProvider userProvider, Color? textColor) {
+    if (!userProvider.isLoggedIn) {
+      return const LoginScreen();
+    }
+
     switch (_currentIndex) {
       case 0:
-        return const LoginScreen();
-      case 1:
         return const AdsScreen();
-      case 2:
-        return userProvider.isLoggedIn && userProvider.username != null
+      case 1:
+        return !userProvider.isGuest
             ? ProfileScreen(username: userProvider.username!)
             : Center(
-                child: Text(
-                  'Morate da se ulogujete da vidite profil',
-                  style: TextStyle(fontSize: 18, color: textColor),
-                  textAlign: TextAlign.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Gosti ne mogu pristupiti profilu. Molimo se registrujte da vidite svoj profil.',
+                    style: TextStyle(fontSize: 18, color: textColor),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               );
-      case 3:
-        return userProvider.isLoggedIn
+      case 2:
+        return !userProvider.isGuest
             ? const ChatScreen()
             : Center(
-                child: Text(
-                  'Morate da se ulogujete da pristupite chatu',
-                  style: TextStyle(fontSize: 18, color: textColor),
-                  textAlign: TextAlign.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Gosti ne mogu koristiti chat. Molimo se registrujte da koristite chat.',
+                    style: TextStyle(fontSize: 18, color: textColor),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               );
       default:
-        return const LoginScreen();
+        return const AdsScreen();
     }
   }
 }
