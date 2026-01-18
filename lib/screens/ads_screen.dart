@@ -158,13 +158,16 @@ class _AdsScreenState extends State<AdsScreen>
         switch (category) {
           case 'Stanovi':
             slikaPath = (index == 0)
-                ? 'assets/images/slika1.png'
+                ? 'assets/images/slika1.jpg'
                 : (index == 1)
-                    ? 'assets/images/slika2.png'
-                    : 'assets/images/placeholder.png';
+                    ? 'assets/images/slika2.jpg'
+                    : 'assets/images/placeholder.jpg';
             break;
           case 'Prakse':
-            slikaPath = 'assets/images/slika3.png';
+            slikaPath = 'assets/images/slika3.webp';
+            break;
+          case 'Ostalo':
+            slikaPath = 'assets/images/slika4.jpg';
             break;
           default:
             slikaPath = 'assets/images/placeholder.png';
@@ -184,7 +187,7 @@ class _AdsScreenState extends State<AdsScreen>
           onReserve: ad.category == 'Stanovi'
               ? () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Rezervacija (placeholder)')),
+                    const SnackBar(content: Text('Rezervacija')),
                   );
                 }
               : null,
