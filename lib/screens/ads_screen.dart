@@ -4,7 +4,6 @@ import '../models/ads.dart';
 import '../widgets/ads_card.dart';
 import '../providers/user_provider.dart';
 import 'ads_detail_screen.dart';
-import 'home_screen.dart';
 import '../services/ads_services.dart';
 
 class AdsScreen extends StatefulWidget {
@@ -126,34 +125,12 @@ class _AdsScreenState extends State<AdsScreen>
   Widget _buildAdList(BuildContext context, List<Ad> ads,
       UserProvider userProvider, String category) {
     return ListView.builder(
-      itemCount: ads.length + (userProvider.isGuest ? 1 : 0),
+      itemCount: ads.length,
       itemBuilder: (context, index) {
-        // Logout dugme za goste
-        if (userProvider.isGuest && index == ads.length) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                userProvider.logout();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomeScreen()),
-                );
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          );
-        }
-
         final ad = ads[index];
 
         // Dodela slike po kategoriji i indeksu
+        // (sklonjeni placeholder-i koji ne postoje, da nema crvenog X)
         String slikaPath;
         switch (category) {
           case 'Stanovi':
@@ -161,7 +138,7 @@ class _AdsScreenState extends State<AdsScreen>
                 ? 'assets/images/slika1.jpg'
                 : (index == 1)
                     ? 'assets/images/slika2.jpg'
-                    : 'assets/images/placeholder.jpg';
+                    : 'assets/images/slika1.jpg';
             break;
           case 'Prakse':
             slikaPath = 'assets/images/slika3.webp';
@@ -170,7 +147,7 @@ class _AdsScreenState extends State<AdsScreen>
             slikaPath = 'assets/images/slika4.jpg';
             break;
           default:
-            slikaPath = 'assets/images/placeholder.png';
+            slikaPath = 'assets/images/slika1.jpg';
         }
 
         return AdCard(

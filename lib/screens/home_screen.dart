@@ -5,6 +5,8 @@ import 'login_screen.dart';
 import 'ads_screen.dart';
 import 'profile_screen.dart';
 import 'chat_screen.dart';
+import '../services/ads_services.dart';
+import '../models/ads.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +17,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+
+  int _adminTabIndex = 0;
+
+  final AdsService _adsService = AdsService();
 
   @override
   Widget build(BuildContext context) {
@@ -29,34 +35,69 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OGLASI'),
+        title: Text(userProvider.isAdmin ? 'ADMIN PANEL' : 'OGLASI'),
+        actions: [
+          if (userProvider.isLoggedIn)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: "Logout",
+              onPressed: () {
+                userProvider.logout();
+                setState(() {
+                  _currentIndex = 0;
+                  _adminTabIndex = 0;
+                });
+              },
+            ),
+        ],
       ),
       body: _buildBody(userProvider, textColor),
       bottomNavigationBar: userProvider.isLoggedIn
-          ? BottomNavigationBar(
-              currentIndex: _currentIndex,
-              selectedItemColor: selectedColor,
-              unselectedItemColor: unselectedColor,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              items: [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.list, color: iconColor),
-                  label: 'Oglasi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person, color: iconColor),
-                  label: 'Profil',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.chat, color: iconColor),
-                  label: 'Chat',
-                ),
-              ],
-            )
+          ? (userProvider.isAdmin
+              ? BottomNavigationBar(
+                  currentIndex: _adminTabIndex,
+                  selectedItemColor: selectedColor,
+                  unselectedItemColor: unselectedColor,
+                  onTap: (index) {
+                    setState(() {
+                      _adminTabIndex = index;
+                    });
+                  },
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.list_alt, color: iconColor),
+                      label: 'Oglasi',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.people, color: iconColor),
+                      label: 'Korisnici',
+                    ),
+                  ],
+                )
+              : BottomNavigationBar(
+                  currentIndex: _currentIndex,
+                  selectedItemColor: selectedColor,
+                  unselectedItemColor: unselectedColor,
+                  onTap: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  items: [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.list, color: iconColor),
+                      label: 'Oglasi',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.person, color: iconColor),
+                      label: 'Profil',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.chat, color: iconColor),
+                      label: 'Chat',
+                    ),
+                  ],
+                ))
           : null,
     );
   }
@@ -66,6 +107,20 @@ class _HomeScreenState extends State<HomeScreen> {
       return const LoginScreen();
     }
 
+    // ======================
+    // ADMIN VIEW
+    // ======================
+    if (userProvider.isAdmin) {
+      if (_adminTabIndex == 0) {
+        return _buildAdminAdsList();
+      } else {
+        return _buildAdminUsersList();
+      }
+    }
+
+    // ======================
+    // NORMAL VIEW
+    // ======================
     switch (_currentIndex) {
       case 0:
         return const AdsScreen();
@@ -98,5 +153,71 @@ class _HomeScreenState extends State<HomeScreen> {
       default:
         return const AdsScreen();
     }
+  }
+
+  Widget _buildAdminAdsList() {
+    return FutureBuilder<List<Ad>>(
+      future: _adsService.getAds(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text("Nema oglasa."));
+        }
+
+        final ads = snapshot.data!;
+
+        return ListView.builder(
+          itemCount: ads.length,
+          itemBuilder: (context, index) {
+            final ad = ads[index];
+
+            return Card(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: ListTile(
+                title: Text(ad.title),
+                subtitle: Text("${ad.category} • ${ad.location} • ${ad.price}"),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {},
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ======================
+  // ADMIN: KORISNICI LISTA (fejk, samo UI)
+  // ======================
+  Widget _buildAdminUsersList() {
+    final fakeUsers = [
+      "pera@gmail.com",
+      "mika@gmail.com",
+      "ana@gmail.com",
+      "admin@gmail.com",
+      "Gost",
+    ];
+
+    return ListView.builder(
+      itemCount: fakeUsers.length,
+      itemBuilder: (context, index) {
+        final u = fakeUsers[index];
+
+        return Card(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: ListTile(
+            title: Text(u),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: () {},
+            ),
+          ),
+        );
+      },
+    );
   }
 }

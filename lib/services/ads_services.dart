@@ -7,5 +7,10 @@ class AdsService {
     return dummyAds;
   }
 
+  // Admin brisanje oglasa (privremeno, bez baze)
+  Future<void> deleteAd(String id) async {
+    dummyAds.removeWhere((ad) => ad.id == id);
+  }
+
   // Kasnije ovde ide POST za dodavanje oglasa
 }

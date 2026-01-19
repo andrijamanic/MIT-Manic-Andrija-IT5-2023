@@ -33,11 +33,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // KORISNIČKO IME
+              // KORISNIČKO IME (ovde možeš uneti i email, npr admin@gmail.com)
               TextFormField(
                 controller: usernameController,
                 decoration: const InputDecoration(
-                  labelText: 'Korisničko ime',
+                  labelText: 'Korisničko ime / email',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -91,10 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       final userProvider =
                           Provider.of<UserProvider>(context, listen: false);
 
-                      // Postavi username
                       userProvider.login(usernameController.text);
 
-                      // Otvori HomeScreen
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => const HomeScreen()),

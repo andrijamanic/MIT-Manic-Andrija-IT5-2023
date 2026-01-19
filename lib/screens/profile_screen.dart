@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../widgets/profile_option_title.dart';
 import '../screens/add_ads_screen.dart';
-import '../screens/home_screen.dart';
 import '../providers/user_provider.dart';
 import '../providers/theme_provider.dart';
 
@@ -92,13 +91,16 @@ class ProfileScreen extends StatelessWidget {
             Text(
               'Podešavanja',
               style: TextStyle(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
             ),
             const SizedBox(height: 10),
 
             Card(
               child: ListTile(
-                leading: Icon(Icons.dark_mode),
+                leading: const Icon(Icons.dark_mode),
                 title: Text('Tamna tema', style: TextStyle(color: textColor)),
                 trailing: Switch(
                   value: themeProvider.isDarkTheme,
@@ -111,26 +113,8 @@ class ProfileScreen extends StatelessWidget {
 
             const Spacer(),
 
-            /// ===== LOGOUT =====
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  userProvider.logout();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                  );
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text('Logout'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ),
+            // Logout dugme je pomereno u AppBar u HomeScreen
+            // Tako da ovde više ne prikazujemo ništa dole.
           ],
         ),
       ),
