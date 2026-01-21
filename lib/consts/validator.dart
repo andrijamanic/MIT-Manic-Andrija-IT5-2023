@@ -4,7 +4,7 @@ class MyValidators {
       return 'Morate da unesete podatke';
     }
     if (displayName.length < 3 || displayName.length > 20) {
-      return 'Koorisnicko ime mora da ima izmedju 3 i 20 karaktera';
+      return 'Korisnicko ime mora da ima izmedju 3 i 20 karaktera';
     }
     return null;
   }
@@ -26,13 +26,6 @@ class MyValidators {
     }
     if (value.length < 6) {
       return 'Lozinka mora da ima najmanje 6 karaktera';
-    }
-    return null;
-  }
-
-  static String? repeatPasswordValidator({String? value, String? password}) {
-    if (value != password) {
-      return 'Lozinke se ne poklapaju';
     }
     return null;
   }

@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
 
-              // KORISNIČKO IME (ovde možeš uneti i email, npr admin@gmail.com)
+              // KORISNIČKO IME
               TextFormField(
                 controller: usernameController,
                 decoration: const InputDecoration(
@@ -74,8 +74,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Unesite šifru';
                   }
-                  if (value.length < 4) {
-                    return 'Šifra mora imati najmanje 4 karaktera';
+                  if (value.length < 6) {
+                    return 'Šifra mora imati najmanje 6 karaktera';
                   }
                   return null;
                 },

@@ -88,7 +88,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return;
                   }
 
-                  // Placeholder register - samo se vraća nazad
                   Navigator.pop(context);
                 },
                 child: const Text('Registruj se'),

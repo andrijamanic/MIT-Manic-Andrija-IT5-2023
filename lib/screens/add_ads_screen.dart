@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AddAdScreen extends StatelessWidget {
-  const AddAdScreen({super.key}); // OBAVEZNO const konstruktor sa key
+  const AddAdScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,12 +14,10 @@ class AddAdScreen extends StatelessWidget {
         child: Column(
           children: [
             const Text(
-              'Forma za dodavanje oglasa (placeholder)',
+              'Forma za dodavanje oglasa',
               style: TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
-
-            // Primer input polja
             TextField(
               decoration: const InputDecoration(
                 labelText: 'Naslov oglasa',
@@ -27,7 +25,6 @@ class AddAdScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-
             TextField(
               decoration: const InputDecoration(
                 labelText: 'Opis oglasa',
@@ -36,14 +33,8 @@ class AddAdScreen extends StatelessWidget {
               maxLines: 5,
             ),
             const SizedBox(height: 12),
-
             ElevatedButton(
-              onPressed: () {
-                // TODO: implement save functionality
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Oglas dodat (placeholder)')),
-                );
-              },
+              onPressed: () {},
               child: const Text('Dodaj oglas'),
             ),
           ],

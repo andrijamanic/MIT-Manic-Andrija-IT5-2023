@@ -6,7 +6,7 @@ import '../widgets/primary_button.dart';
 
 class AdDetailScreen extends StatelessWidget {
   final Ad ad;
-  final String imagePath; // putanja slike
+  final String imagePath;
 
   const AdDetailScreen({
     super.key,
@@ -53,7 +53,7 @@ class AdDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Tekstualni podaci
+              // Tekst
               Text(ad.description, style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 12),
               Text(ad.price,

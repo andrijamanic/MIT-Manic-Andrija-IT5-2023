@@ -7,7 +7,7 @@ import '../providers/user_provider.dart';
 import '../providers/theme_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
-  final String? username; // nullable
+  final String? username;
 
   const ProfileScreen({super.key, required this.username});
 
@@ -40,7 +40,6 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Zdravo korisniče
             Text(
               'Zdravo, $username!',
               style: TextStyle(
@@ -51,7 +50,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             const SizedBox(height: 25),
 
-            /// ===== OPCIJE PROFILA =====
+            //OPCIJE PROFILA
             ProfileOptionTile(
               text: 'Dodaj oglas',
               icon: Icons.add,
@@ -65,24 +64,12 @@ class ProfileScreen extends StatelessWidget {
             ProfileOptionTile(
               text: 'Moji oglasi',
               icon: Icons.list,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Moji oglasi (placeholder)'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
             ProfileOptionTile(
               text: 'Moje rezervacije',
               icon: Icons.calendar_today,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Moje rezervacije (placeholder)'),
-                  ),
-                );
-              },
+              onTap: () {},
             ),
 
             const SizedBox(height: 30),
@@ -112,9 +99,6 @@ class ProfileScreen extends StatelessWidget {
             ),
 
             const Spacer(),
-
-            // Logout dugme je pomereno u AppBar u HomeScreen
-            // Tako da ovde više ne prikazujemo ništa dole.
           ],
         ),
       ),

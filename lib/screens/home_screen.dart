@@ -107,9 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return const LoginScreen();
     }
 
-    // ======================
     // ADMIN VIEW
-    // ======================
     if (userProvider.isAdmin) {
       if (_adminTabIndex == 0) {
         return _buildAdminAdsList();
@@ -118,9 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // ======================
     // NORMAL VIEW
-    // ======================
     switch (_currentIndex) {
       case 0:
         return const AdsScreen();
@@ -190,9 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ======================
-  // ADMIN: KORISNICI LISTA (fejk, samo UI)
-  // ======================
+  // ADMIN: KORISNICI LISTA (fejk)
   Widget _buildAdminUsersList() {
     final fakeUsers = [
       "pera@gmail.com",

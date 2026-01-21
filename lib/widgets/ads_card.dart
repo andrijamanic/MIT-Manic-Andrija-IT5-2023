@@ -3,7 +3,7 @@ import '../models/ads.dart';
 
 class AdCard extends StatelessWidget {
   final Ad ad;
-  final String imagePath; // obavezno
+  final String imagePath;
   final VoidCallback onTap;
   final VoidCallback? onReserve;
 

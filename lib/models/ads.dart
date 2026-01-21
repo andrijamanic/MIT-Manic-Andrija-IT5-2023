@@ -16,7 +16,7 @@ class Ad {
   });
 }
 
-// Primer placeholder liste oglasa
+// Primer liste oglasa
 final List<Ad> dummyAds = [
   Ad(
     id: '1',

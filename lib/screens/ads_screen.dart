@@ -129,8 +129,7 @@ class _AdsScreenState extends State<AdsScreen>
       itemBuilder: (context, index) {
         final ad = ads[index];
 
-        // Dodela slike po kategoriji i indeksu
-        // (sklonjeni placeholder-i koji ne postoje, da nema crvenog X)
+        // Dodela slike
         String slikaPath;
         switch (category) {
           case 'Stanovi':
@@ -161,13 +160,6 @@ class _AdsScreenState extends State<AdsScreen>
               ),
             );
           },
-          onReserve: ad.category == 'Stanovi'
-              ? () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Rezervacija')),
-                  );
-                }
-              : null,
         );
       },
     );
