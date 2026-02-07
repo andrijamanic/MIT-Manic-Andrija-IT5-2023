@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../models/ads.dart';
 import '../widgets/ads_card.dart';
 import '../providers/user_provider.dart';
@@ -18,10 +19,15 @@ class _AdsScreenState extends State<AdsScreen>
   late TabController _tabController;
   String searchQuery = '';
 
+  final AdsService _adsService = AdsService();
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
+    // ✅ Seed test oglasi (samo ako je prazno) – microtask da bude stabilno
+    Future.microtask(() => _adsService.seedAdsIfEmpty());
   }
 
   @override
@@ -34,14 +40,22 @@ class _AdsScreenState extends State<AdsScreen>
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
 
+    // ✅ sakrij moje oglase iz glavne liste (samo kad nisam gost)
+    final excludeUid = (userProvider.isLoggedIn && !userProvider.isGuest)
+        ? userProvider.uid
+        : null;
+
     return StreamBuilder<List<Ad>>(
-      stream: AdsService().watchAds(),
+      stream: _adsService.watchAds(excludeUserId: excludeUid),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
 
         final ads = snapshot.data!;
+        if (ads.isEmpty) {
+          return const Center(child: Text('Nema oglasa.'));
+        }
 
         final stanoviFiltered = ads
             .where((ad) =>
@@ -81,9 +95,7 @@ class _AdsScreenState extends State<AdsScreen>
                     borderSide: BorderSide.none,
                   ),
                 ),
-                onChanged: (value) {
-                  setState(() => searchQuery = value);
-                },
+                onChanged: (value) => setState(() => searchQuery = value),
               ),
             ),
             TabBar(
@@ -101,10 +113,9 @@ class _AdsScreenState extends State<AdsScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildAdList(
-                      context, stanoviFiltered, userProvider, 'Stanovi'),
-                  _buildAdList(context, prakseFiltered, userProvider, 'Prakse'),
-                  _buildAdList(context, ostaloFiltered, userProvider, 'Ostalo'),
+                  _buildAdList(context, stanoviFiltered, 'Stanovi'),
+                  _buildAdList(context, prakseFiltered, 'Prakse'),
+                  _buildAdList(context, ostaloFiltered, 'Ostalo'),
                 ],
               ),
             ),
@@ -114,8 +125,10 @@ class _AdsScreenState extends State<AdsScreen>
     );
   }
 
-  Widget _buildAdList(BuildContext context, List<Ad> ads,
-      UserProvider userProvider, String category) {
+  Widget _buildAdList(BuildContext context, List<Ad> ads, String category) {
+    if (ads.isEmpty)
+      return const Center(child: Text('Nema oglasa u ovoj kategoriji.'));
+
     return ListView.builder(
       itemCount: ads.length,
       itemBuilder: (context, index) {
@@ -140,17 +153,21 @@ class _AdsScreenState extends State<AdsScreen>
             slikaPath = 'assets/images/slika1.jpg';
         }
 
+        void openDetails() {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdDetailScreen(ad: ad, imagePath: slikaPath),
+            ),
+          );
+        }
+
         return AdCard(
           ad: ad,
           imagePath: slikaPath,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => AdDetailScreen(ad: ad, imagePath: slikaPath),
-              ),
-            );
-          },
+          onTap: openDetails,
+          // "Rezerviši" na kartici samo otvara detalje (tamo pravi reservation)
+          onReserve: (ad.category == 'Stanovi') ? () => openDetails() : null,
         );
       },
     );

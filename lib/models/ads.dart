@@ -7,8 +7,6 @@ class Ad {
   final String price;
   final String category;
   final String location;
-
-  // Firebase
   final String userId;
   final DateTime createdAt;
 
@@ -23,8 +21,25 @@ class Ad {
     required this.createdAt,
   });
 
-  factory Ad.fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data();
+  Map<String, dynamic> toMap() {
+    return {
+      'title': title,
+      'description': description,
+      'price': price,
+      'category': category,
+      'location': location,
+      'userId': userId,
+      'createdAt': Timestamp.fromDate(createdAt),
+    };
+  }
+
+  factory Ad.fromDoc(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    final ts = data['createdAt'];
+    DateTime created = DateTime.now();
+    if (ts is Timestamp) created = ts.toDate();
+
     return Ad(
       id: doc.id,
       title: (data['title'] ?? '') as String,
@@ -33,17 +48,7 @@ class Ad {
       category: (data['category'] ?? '') as String,
       location: (data['location'] ?? '') as String,
       userId: (data['userId'] ?? '') as String,
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      createdAt: created,
     );
   }
-
-  Map<String, dynamic> toMap() => {
-        'title': title,
-        'description': description,
-        'price': price,
-        'category': category,
-        'location': location,
-        'userId': userId,
-        'createdAt': Timestamp.fromDate(createdAt),
-      };
 }

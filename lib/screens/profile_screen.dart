@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../widgets/profile_option_title.dart';
 import '../screens/add_ads_screen.dart';
+import '../screens/my_ads_screen.dart';
+import '../screens/my_reservations_screen.dart';
+import '../screens/favorites_screen.dart';
 import '../providers/user_provider.dart';
 import '../providers/theme_provider.dart';
 
@@ -20,7 +23,6 @@ class ProfileScreen extends StatelessWidget {
         Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black;
 
     if (!userProvider.isLoggedIn || username == null) {
-      // Ako korisnik nije ulogovan, pokaži poruku
       return Scaffold(
         body: Center(
           child: Text(
@@ -32,9 +34,7 @@ class ProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil'),
-      ),
+      appBar: AppBar(title: const Text('Profil')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -49,8 +49,6 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 25),
-
-            //OPCIJE PROFILA
             ProfileOptionTile(
               text: 'Dodaj oglas',
               icon: Icons.add,
@@ -64,17 +62,35 @@ class ProfileScreen extends StatelessWidget {
             ProfileOptionTile(
               text: 'Moji oglasi',
               icon: Icons.list,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyAdsScreen()),
+                );
+              },
+            ),
+            ProfileOptionTile(
+              text: 'Moji omiljeni oglasi',
+              icon: Icons.favorite,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                );
+              },
             ),
             ProfileOptionTile(
               text: 'Moje rezervacije',
               icon: Icons.calendar_today,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const MyReservationsScreen()),
+                );
+              },
             ),
-
             const SizedBox(height: 30),
-
-            /// ===== TEMA =====
             Text(
               'Podešavanja',
               style: TextStyle(
@@ -84,20 +100,16 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-
             Card(
               child: ListTile(
                 leading: const Icon(Icons.dark_mode),
                 title: Text('Tamna tema', style: TextStyle(color: textColor)),
                 trailing: Switch(
                   value: themeProvider.isDarkTheme,
-                  onChanged: (value) {
-                    themeProvider.toggleTheme();
-                  },
+                  onChanged: (_) => themeProvider.toggleTheme(),
                 ),
               ),
             ),
-
             const Spacer(),
           ],
         ),
