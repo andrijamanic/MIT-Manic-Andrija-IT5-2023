@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../consts/validator.dart';
 import '../services/auth_services.dart';
 
@@ -13,7 +16,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  bool _obscurePassword = true;
+
+  bool _obscure = true;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,17 +54,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 15),
             TextField(
               controller: passwordController,
-              obscureText: _obscurePassword,
+              obscureText: _obscure,
               decoration: InputDecoration(
                 labelText: 'Šifra',
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                  ),
-                  onPressed: () {
-                    setState(() => _obscurePassword = !_obscurePassword);
-                  },
+                  icon:
+                      Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
             ),
@@ -59,45 +69,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
-                  final emailError =
-                      MyValidators.emailValidator(emailController.text);
-                  final usernameError = MyValidators.displayNameValidator(
-                      usernameController.text);
-                  final passwordError =
-                      MyValidators.passwordValidator(passwordController.text);
+                onPressed: _loading
+                    ? null
+                    : () async {
+                        final emailError =
+                            MyValidators.emailValidator(emailController.text);
+                        final usernameError = MyValidators.displayNameValidator(
+                            usernameController.text);
+                        final passwordError = MyValidators.passwordValidator(
+                            passwordController.text);
 
-                  if (emailError != null ||
-                      usernameError != null ||
-                      passwordError != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content:
-                            Text(emailError ?? usernameError ?? passwordError!),
-                      ),
-                    );
-                    return;
-                  }
+                        final err =
+                            emailError ?? usernameError ?? passwordError;
+                        if (err != null) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(err)));
+                          return;
+                        }
 
-                  try {
-                    await AuthService().register(
-                      email: emailController.text,
-                      password: passwordController.text,
-                      username: usernameController.text,
-                    );
+                        setState(() => _loading = true);
 
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Registracija uspešna!')),
-                    );
-                    Navigator.pop(context);
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Registracija neuspešna: $e')),
-                    );
-                  }
-                },
-                child: const Text('Registruj se'),
+                        try {
+                          await AuthService().register(
+                            email: emailController.text,
+                            password: passwordController.text,
+                            username: usernameController.text,
+                          );
+
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text('Registracija uspešna! Uloguj se.')),
+                          );
+                          Navigator.pop(context);
+                        } on FirebaseAuthException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Auth greška: ${e.code}')),
+                          );
+                        } on FirebaseException catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Firestore greška: ${e.code}')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Greška: $e')),
+                          );
+                        } finally {
+                          if (mounted) setState(() => _loading = false);
+                        }
+                      },
+                child: _loading
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Registruj se'),
               ),
             ),
           ],

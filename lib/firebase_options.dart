@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'mit-oglasi.firebasestorage.app',
     measurementId: 'G-QTDRNN6QQJ',
   );
+
 }

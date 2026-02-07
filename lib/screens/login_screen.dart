@@ -14,10 +14,19 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool _obscure = true;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,38 +44,33 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 30),
               TextFormField(
-                controller: usernameController,
+                controller: emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Unesite email';
-                  if (!value.contains('@')) return 'Unesite validan email';
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Unesi email';
+                  if (!v.contains('@')) return 'Unesi validan email';
                   return null;
                 },
               ),
               const SizedBox(height: 15),
               TextFormField(
                 controller: passwordController,
-                obscureText: _obscurePassword,
+                obscureText: _obscure,
                 decoration: InputDecoration(
                   labelText: 'Šifra',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility
-                          : Icons.visibility_off,
-                    ),
-                    onPressed: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
+                        _obscure ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Unesite šifru';
-                  if (value.length < 6) return 'Šifra min 6 karaktera';
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Unesi šifru';
+                  if (v.length < 6) return 'Šifra min 6 karaktera';
                   return null;
                 },
               ),
@@ -74,41 +78,55 @@ class _LoginScreenState extends State<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () async {
-                    if (!_formKey.currentState!.validate()) return;
+                  onPressed: _loading
+                      ? null
+                      : () async {
+                          if (!_formKey.currentState!.validate()) return;
 
-                    final userProvider =
-                        Provider.of<UserProvider>(context, listen: false);
+                          setState(() => _loading = true);
 
-                    try {
-                      final auth = AuthService();
-                      final cred = await auth.login(
-                        email: usernameController.text,
-                        password: passwordController.text,
-                      );
+                          try {
+                            final auth = AuthService();
+                            final cred = await auth.login(
+                              email: emailController.text,
+                              password: passwordController.text,
+                            );
 
-                      final uid = cred.user!.uid;
-                      final role = await auth.getRole(uid);
+                            final uid = cred.user!.uid;
+                            final role = await auth.getRole(uid);
 
-                      userProvider.setUser(
-                        isLoggedIn: true,
-                        email: cred.user!.email,
-                        uid: uid,
-                        role: role,
-                      );
+                            final userProvider = Provider.of<UserProvider>(
+                                context,
+                                listen: false);
 
-                      if (!context.mounted) return;
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Login neuspešan: $e')),
-                      );
-                    }
-                  },
-                  child: const Text('Uloguj se'),
+                            userProvider.setUser(
+                              isLoggedIn: true,
+                              email: cred.user!.email,
+                              uid: uid,
+                              role: role,
+                            );
+
+                            if (!context.mounted) return;
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const HomeScreen()),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Login neuspešan: $e')),
+                            );
+                          } finally {
+                            if (mounted) setState(() => _loading = false);
+                          }
+                        },
+                  child: _loading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Uloguj se'),
                 ),
               ),
               const SizedBox(height: 10),
