@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../consts/validator.dart';
+import '../services/auth_services.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,7 +23,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // EMAIL
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
@@ -31,8 +31,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 15),
-
-            // KORISNIČKO IME
             TextField(
               controller: usernameController,
               decoration: const InputDecoration(
@@ -41,8 +39,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ),
             const SizedBox(height: 15),
-
-            // ŠIFRA sa sakrij/prikaži
             TextField(
               controller: passwordController,
               obscureText: _obscurePassword,
@@ -54,21 +50,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
                   ),
                   onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
+                    setState(() => _obscurePassword = !_obscurePassword);
                   },
                 ),
               ),
             ),
             const SizedBox(height: 25),
-
-            // REGISTRACIJA DUGME
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Validatori
+                onPressed: () async {
                   final emailError =
                       MyValidators.emailValidator(emailController.text);
                   final usernameError = MyValidators.displayNameValidator(
@@ -88,7 +79,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return;
                   }
 
-                  Navigator.pop(context);
+                  try {
+                    await AuthService().register(
+                      email: emailController.text,
+                      password: passwordController.text,
+                      username: usernameController.text,
+                    );
+
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Registracija uspešna!')),
+                    );
+                    Navigator.pop(context);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Registracija neuspešna: $e')),
+                    );
+                  }
                 },
                 child: const Text('Registruj se'),
               ),

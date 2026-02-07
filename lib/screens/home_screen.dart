@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../services/auth_services.dart';
 import 'login_screen.dart';
 import 'ads_screen.dart';
 import 'profile_screen.dart';
@@ -17,7 +18,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
   int _adminTabIndex = 0;
 
   final AdsService _adsService = AdsService();
@@ -26,7 +26,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
 
-    // Boje koje prate temu
     final selectedColor = Theme.of(context).colorScheme.primary;
     final unselectedColor = Theme.of(context).unselectedWidgetColor;
     final iconColor = Theme.of(context).iconTheme.color;
@@ -41,8 +40,13 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
               icon: const Icon(Icons.logout),
               tooltip: "Logout",
-              onPressed: () {
-                userProvider.logout();
+              onPressed: () async {
+                // Ako nije gost -> Firebase signOut
+                if (!userProvider.isGuest) {
+                  await AuthService().logout();
+                }
+                userProvider.logoutLocal();
+
                 setState(() {
                   _currentIndex = 0;
                   _adminTabIndex = 0;
@@ -58,11 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentIndex: _adminTabIndex,
                   selectedItemColor: selectedColor,
                   unselectedItemColor: unselectedColor,
-                  onTap: (index) {
-                    setState(() {
-                      _adminTabIndex = index;
-                    });
-                  },
+                  onTap: (index) => setState(() => _adminTabIndex = index),
                   items: [
                     BottomNavigationBarItem(
                       icon: Icon(Icons.list_alt, color: iconColor),
@@ -78,11 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentIndex: _currentIndex,
                   selectedItemColor: selectedColor,
                   unselectedItemColor: unselectedColor,
-                  onTap: (index) {
-                    setState(() {
-                      _currentIndex = index;
-                    });
-                  },
+                  onTap: (index) => setState(() => _currentIndex = index),
                   items: [
                     BottomNavigationBarItem(
                       icon: Icon(Icons.list, color: iconColor),
@@ -103,11 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody(UserProvider userProvider, Color? textColor) {
-    if (!userProvider.isLoggedIn) {
-      return const LoginScreen();
-    }
+    if (!userProvider.isLoggedIn) return const LoginScreen();
 
-    // ADMIN VIEW
     if (userProvider.isAdmin) {
       if (_adminTabIndex == 0) {
         return _buildAdminAdsList();
@@ -116,13 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // NORMAL VIEW
     switch (_currentIndex) {
       case 0:
         return const AdsScreen();
       case 1:
         return !userProvider.isGuest
-            ? ProfileScreen(username: userProvider.username!)
+            ? ProfileScreen(username: userProvider.username ?? '')
             : Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -176,7 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 subtitle: Text("${ad.category} • ${ad.location} • ${ad.price}"),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete),
-                  onPressed: () {},
+                  onPressed: () async {
+                    await _adsService.deleteAd(ad.id);
+                    setState(() {}); // refresh FutureBuilder
+                  },
                 ),
               ),
             );
@@ -186,7 +181,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ADMIN: KORISNICI LISTA (fejk)
   Widget _buildAdminUsersList() {
     final fakeUsers = [
       "pera@gmail.com",

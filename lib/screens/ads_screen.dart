@@ -16,14 +16,12 @@ class AdsScreen extends StatefulWidget {
 class _AdsScreenState extends State<AdsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late Future<List<Ad>> _adsFuture;
   String searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _adsFuture = AdsService().getAds();
   }
 
   @override
@@ -36,8 +34,8 @@ class _AdsScreenState extends State<AdsScreen>
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context);
 
-    return FutureBuilder<List<Ad>>(
-      future: _adsFuture,
+    return StreamBuilder<List<Ad>>(
+      stream: AdsService().watchAds(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -45,17 +43,18 @@ class _AdsScreenState extends State<AdsScreen>
 
         final ads = snapshot.data!;
 
-        // Filtriranje po kategorijama
         final stanoviFiltered = ads
             .where((ad) =>
                 ad.category == 'Stanovi' &&
                 ad.title.toLowerCase().contains(searchQuery.toLowerCase()))
             .toList();
+
         final prakseFiltered = ads
             .where((ad) =>
                 ad.category == 'Prakse' &&
                 ad.title.toLowerCase().contains(searchQuery.toLowerCase()))
             .toList();
+
         final ostaloFiltered = ads
             .where((ad) =>
                 ad.category == 'Ostalo' &&
@@ -64,7 +63,6 @@ class _AdsScreenState extends State<AdsScreen>
 
         return Column(
           children: [
-            // Search bar
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -84,14 +82,10 @@ class _AdsScreenState extends State<AdsScreen>
                   ),
                 ),
                 onChanged: (value) {
-                  setState(() {
-                    searchQuery = value;
-                  });
+                  setState(() => searchQuery = value);
                 },
               ),
             ),
-
-            // Tab bar
             TabBar(
               controller: _tabController,
               labelColor: Theme.of(context).colorScheme.primary,
@@ -103,8 +97,6 @@ class _AdsScreenState extends State<AdsScreen>
                 Tab(text: 'Ostalo'),
               ],
             ),
-
-            // TabBarView sa listama
             Expanded(
               child: TabBarView(
                 controller: _tabController,
@@ -129,7 +121,6 @@ class _AdsScreenState extends State<AdsScreen>
       itemBuilder: (context, index) {
         final ad = ads[index];
 
-        // Dodela slike
         String slikaPath;
         switch (category) {
           case 'Stanovi':

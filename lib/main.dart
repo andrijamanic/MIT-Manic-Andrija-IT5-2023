@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'firebase_options.dart';
 import 'providers/user_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(
     MultiProvider(
       providers: [
@@ -22,8 +29,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider =
-        Provider.of<ThemeProvider>(context); // pratimo promene teme
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -72,9 +78,7 @@ class MyApp extends StatelessWidget {
           trackColor: MaterialStateProperty.all(Colors.grey),
         ),
       ),
-      themeMode: themeProvider.isDarkTheme
-          ? ThemeMode.dark
-          : ThemeMode.light, // ovo prati switch
+      themeMode: themeProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
       home: const HomeScreen(),
     );
   }

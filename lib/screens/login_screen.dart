@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'register_screen.dart';
+
 import '../providers/user_provider.dart';
+import '../services/auth_services.dart';
 import 'home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _obscurePassword = true; // za skrivanje/otkrivanje lozinke
+  bool _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -32,27 +34,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 30),
-
-              // KORISNIČKO IME
               TextFormField(
                 controller: usernameController,
                 decoration: const InputDecoration(
-                  labelText: 'Korisničko ime / email',
+                  labelText: 'Email',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Unesite korisničko ime';
-                  }
-                  if (value.length < 3) {
-                    return 'Korisničko ime mora imati najmanje 3 karaktera';
-                  }
+                  if (value == null || value.isEmpty) return 'Unesite email';
+                  if (!value.contains('@')) return 'Unesite validan email';
                   return null;
                 },
               ),
               const SizedBox(height: 15),
-
-              // ŠIFRA sa opcijom prikaza/skrivanja
               TextFormField(
                 controller: passwordController,
                 obscureText: _obscurePassword,
@@ -60,52 +54,64 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'Šifra',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
                     onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
+                      setState(() => _obscurePassword = !_obscurePassword);
                     },
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Unesite šifru';
-                  }
-                  if (value.length < 6) {
-                    return 'Šifra mora imati najmanje 6 karaktera';
-                  }
+                  if (value == null || value.isEmpty) return 'Unesite šifru';
+                  if (value.length < 6) return 'Šifra min 6 karaktera';
                   return null;
                 },
               ),
               const SizedBox(height: 25),
-
-              // LOGIN DUGME
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      final userProvider =
-                          Provider.of<UserProvider>(context, listen: false);
+                  onPressed: () async {
+                    if (!_formKey.currentState!.validate()) return;
 
-                      userProvider.login(usernameController.text);
+                    final userProvider =
+                        Provider.of<UserProvider>(context, listen: false);
 
+                    try {
+                      final auth = AuthService();
+                      final cred = await auth.login(
+                        email: usernameController.text,
+                        password: passwordController.text,
+                      );
+
+                      final uid = cred.user!.uid;
+                      final role = await auth.getRole(uid);
+
+                      userProvider.setUser(
+                        isLoggedIn: true,
+                        email: cred.user!.email,
+                        uid: uid,
+                        role: role,
+                      );
+
+                      if (!context.mounted) return;
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Login neuspešan: $e')),
                       );
                     }
                   },
                   child: const Text('Uloguj se'),
                 ),
               ),
-
               const SizedBox(height: 10),
-
-              // PRIJAVA KAO GOST
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
@@ -123,17 +129,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text('Prijavi se kao gost'),
                 ),
               ),
-
               const SizedBox(height: 15),
-
-              // REGISTRACIJA
               TextButton(
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const RegisterScreen(),
-                    ),
+                    MaterialPageRoute(builder: (_) => const RegisterScreen()),
                   );
                 },
                 child: const Text('Nemaš nalog? Registruj se'),

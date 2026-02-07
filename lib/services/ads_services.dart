@@ -1,16 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/ads.dart';
 
 class AdsService {
-  // Placeholder funkcija – vraća sve oglase
+  final _db = FirebaseFirestore.instance;
+
+  Stream<List<Ad>> watchAds() {
+    return _db
+        .collection('ads')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => Ad.fromDoc(d)).toList());
+  }
+
   Future<List<Ad>> getAds() async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    return dummyAds;
+    final snap = await _db
+        .collection('ads')
+        .orderBy('createdAt', descending: true)
+        .get();
+    return snap.docs.map((d) => Ad.fromDoc(d)).toList();
   }
 
-  // Admin brisanje oglasa (privremeno, bez baze)
-  Future<void> deleteAd(String id) async {
-    dummyAds.removeWhere((ad) => ad.id == id);
+  Future<void> addAd(Ad ad) async {
+    await _db.collection('ads').add(ad.toMap());
   }
 
-  // Kasnije ovde ide POST za dodavanje oglasa
+  Future<void> deleteAd(String adId) async {
+    await _db.collection('ads').doc(adId).delete();
+  }
 }

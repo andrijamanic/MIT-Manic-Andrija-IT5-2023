@@ -11,6 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Firebase
+  firebase_core: ^3.2.0
+  firebase_auth: ^5.1.2
+  cloud_firestore: ^5.4.0
+
   # Icons
   cupertino_icons: ^1.0.8
   flutter_iconly: ^1.0.2
@@ -31,7 +36,7 @@ dependencies:
   latlong2: ^0.9.1
 
   # Opcionalno za geocoding
-  geocoding: ^2.0.5                 # <-- ako planiraš adresa -> koordinate
+  geocoding: ^2.0.5
 
 dev_dependencies:
   flutter_test:
@@ -41,7 +46,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Assets folder - slike i ikone
   assets:
     - assets/images/
     - assets/icons/

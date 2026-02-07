@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Ad {
   final String id;
   final String title;
@@ -6,6 +8,10 @@ class Ad {
   final String category;
   final String location;
 
+  // Firebase
+  final String userId;
+  final DateTime createdAt;
+
   Ad({
     required this.id,
     required this.title,
@@ -13,41 +19,31 @@ class Ad {
     required this.price,
     required this.category,
     required this.location,
+    required this.userId,
+    required this.createdAt,
   });
-}
 
-// Primer liste oglasa
-final List<Ad> dummyAds = [
-  Ad(
-    id: '1',
-    title: 'Jednosoban stan',
-    description: 'Beograd, Vračar, 35m²',
-    price: '400€',
-    category: 'Stanovi',
-    location: 'Beograd',
-  ),
-  Ad(
-    id: '2',
-    title: 'Dvosoban stan',
-    description: 'Novi Sad, 55m²',
-    price: '550€',
-    category: 'Stanovi',
-    location: 'Novi Sad',
-  ),
-  Ad(
-    id: '3',
-    title: 'IT praksa',
-    description: 'Frontend developer, Beograd',
-    price: 'Besplatno',
-    category: 'Prakse',
-    location: 'Beograd',
-  ),
-  Ad(
-    id: '4',
-    title: 'Bicikl',
-    description: 'Road bike, korišćen',
-    price: '150€',
-    category: 'Ostalo',
-    location: 'Beograd',
-  ),
-];
+  factory Ad.fromDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data();
+    return Ad(
+      id: doc.id,
+      title: (data['title'] ?? '') as String,
+      description: (data['description'] ?? '') as String,
+      price: (data['price'] ?? '') as String,
+      category: (data['category'] ?? '') as String,
+      location: (data['location'] ?? '') as String,
+      userId: (data['userId'] ?? '') as String,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+        'title': title,
+        'description': description,
+        'price': price,
+        'category': category,
+        'location': location,
+        'userId': userId,
+        'createdAt': Timestamp.fromDate(createdAt),
+      };
+}

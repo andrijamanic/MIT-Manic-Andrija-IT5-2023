@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "470400475240",
+    "project_id": "mit-oglasi",
+    "storage_bucket": "mit-oglasi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:470400475240:android:ea9ba2479f6e4e8a171bdd",
+        "android_client_info": {
+          "package_name": "com.example.projekatoglasimit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6FjL5j5Tr1yHpggxx8_GuLNr0v9AKr7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
