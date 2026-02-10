@@ -16,7 +16,8 @@ class FavoritesScreen extends StatelessWidget {
     if (!user.isLoggedIn || uid == null || user.isGuest) {
       return const Scaffold(
         body: Center(
-            child: Text('Moraš biti ulogovan da vidiš omiljene oglase.')),
+          child: Text('Moraš biti ulogovan da vidiš omiljene oglase.'),
+        ),
       );
     }
 
@@ -25,24 +26,56 @@ class FavoritesScreen extends StatelessWidget {
       body: StreamBuilder<Set<String>>(
         stream: FavoritesService().watchFavoriteIds(uid),
         builder: (context, favSnap) {
-          if (!favSnap.hasData)
-            return const Center(child: CircularProgressIndicator());
-          final favIds = favSnap.data!;
+          if (favSnap.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text('Omiljeni greška:\n${favSnap.error}'),
+              ),
+            );
+          }
 
-          if (favIds.isEmpty)
+          if (favSnap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!favSnap.hasData) {
+            return const Center(child: Text('Nema podataka.'));
+          }
+
+          final favIds = favSnap.data!;
+          if (favIds.isEmpty) {
             return const Center(child: Text('Nemaš omiljene oglase.'));
+          }
 
           return StreamBuilder<List<Ad>>(
             stream: AdsService().watchAds(),
             builder: (context, adsSnap) {
-              if (!adsSnap.hasData)
+              if (adsSnap.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Oglasi greška:\n${adsSnap.error}'),
+                  ),
+                );
+              }
+
+              if (adsSnap.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (!adsSnap.hasData) {
+                return const Center(child: Text('Nema podataka.'));
+              }
 
               final favAds =
                   adsSnap.data!.where((a) => favIds.contains(a.id)).toList();
-              if (favAds.isEmpty)
+
+              if (favAds.isEmpty) {
                 return const Center(
-                    child: Text('Omiljeni oglasi nisu pronađeni.'));
+                  child: Text('Omiljeni oglasi nisu pronađeni.'),
+                );
+              }
 
               return ListView.builder(
                 itemCount: favAds.length,

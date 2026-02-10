@@ -41,7 +41,9 @@ class AdDetailScreen extends StatelessWidget {
     final isGuest = userProvider.isGuest;
     final isOwner = (uid != null && uid == ad.userId);
 
-    final LatLng adPosition = getCoordinates(ad.location);
+    final LatLng adPosition = (ad.lat != null && ad.lng != null)
+        ? LatLng(ad.lat!, ad.lng!)
+        : getCoordinates(ad.location);
 
     return Scaffold(
       appBar: AppBar(
@@ -79,15 +81,27 @@ class AdDetailScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  imagePath,
-                  width: double.infinity,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
+                child: (ad.imageUrl.trim().isNotEmpty)
+                    ? Image.network(
+                        ad.imageUrl,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) => Image.asset(
+                          imagePath,
+                          width: double.infinity,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      )
+                    : Image.asset(
+                        imagePath,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
               ),
               const SizedBox(height: 16),
-
               Text(ad.description, style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 12),
               Text(
@@ -99,13 +113,11 @@ class AdDetailScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
               Text(
                 'Lokacija: ${ad.location}',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 12),
-
               SizedBox(
                 height: 250,
                 child: FlutterMap(
@@ -136,10 +148,7 @@ class AdDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const SizedBox(height: 24),
-
-              // ✅ POSALJI PORUKU (samo ako nije tvoj oglas i nisi gost)
               PrimaryButton(
                 text: isOwner
                     ? 'Ovo je tvoj oglas'
@@ -177,10 +186,7 @@ class AdDetailScreen extends StatelessWidget {
                         }
                       },
               ),
-
               const SizedBox(height: 12),
-
-              // ✅ REZERVACIJA (samo za stanove) - BIRAS DATUM I VREME, ODMAH "RESERVED"
               if (ad.category == 'Stanovi')
                 PrimaryButton(
                   text: isOwner
@@ -195,7 +201,6 @@ class AdDetailScreen extends StatelessWidget {
                       ? () {}
                       : () async {
                           try {
-                            // 1) datum
                             final pickedDate = await showDatePicker(
                               context: context,
                               initialDate:
@@ -206,7 +211,6 @@ class AdDetailScreen extends StatelessWidget {
                             );
                             if (pickedDate == null) return;
 
-                            // 2) vreme
                             final pickedTime = await showTimePicker(
                               context: context,
                               initialTime: const TimeOfDay(hour: 12, minute: 0),

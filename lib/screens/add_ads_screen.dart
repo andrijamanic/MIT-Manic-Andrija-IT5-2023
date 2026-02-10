@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../models/ads.dart';
 import '../providers/user_provider.dart';
 import '../services/ads_services.dart';
+import 'map_picker_screen.dart';
 
 class AddAdScreen extends StatefulWidget {
-  const AddAdScreen({super.key});
+  final Ad? existing; // ✅ edit mode ako nije null
+
+  const AddAdScreen({super.key, this.existing});
 
   @override
   State<AddAdScreen> createState() => _AddAdScreenState();
@@ -17,9 +21,32 @@ class _AddAdScreenState extends State<AddAdScreen> {
   final _desc = TextEditingController();
   final _price = TextEditingController();
   final _location = TextEditingController();
+  final _imageUrl = TextEditingController();
 
   String _category = 'Stanovi';
   bool _loading = false;
+
+  LatLng? _pickedLatLng;
+
+  bool get isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    if (e != null) {
+      _title.text = e.title;
+      _desc.text = e.description;
+      _price.text = e.price;
+      _location.text = e.location;
+      _imageUrl.text = e.imageUrl;
+      _category = e.category;
+
+      if (e.lat != null && e.lng != null) {
+        _pickedLatLng = LatLng(e.lat!, e.lng!);
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -27,7 +54,39 @@ class _AddAdScreenState extends State<AddAdScreen> {
     _desc.dispose();
     _price.dispose();
     _location.dispose();
+    _imageUrl.dispose();
     super.dispose();
+  }
+
+  LatLng _defaultCoordsFromLocation(String location) {
+    switch (location.trim().toLowerCase()) {
+      case 'beograd':
+        return const LatLng(44.8176, 20.4569);
+      case 'novi sad':
+        return const LatLng(45.2671, 19.8335);
+      case 'niš':
+        return const LatLng(43.3209, 21.8958);
+      default:
+        return const LatLng(44.8176, 20.4569);
+    }
+  }
+
+  Future<void> _pickOnMap() async {
+    final initial = _pickedLatLng ?? _defaultCoordsFromLocation(_location.text);
+    final result = await Navigator.push<LatLng?>(
+      context,
+      MaterialPageRoute(builder: (_) => MapPickerScreen(initial: initial)),
+    );
+
+    if (result != null) {
+      setState(() => _pickedLatLng = result);
+    }
+  }
+
+  bool _isValidUrl(String url) {
+    final u = url.trim();
+    if (u.isEmpty) return false;
+    return u.startsWith('http://') || u.startsWith('https://');
   }
 
   @override
@@ -35,8 +94,8 @@ class _AddAdScreenState extends State<AddAdScreen> {
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dodaj Oglas')),
-      body: Padding(
+      appBar: AppBar(title: Text(isEdit ? 'Izmeni oglas' : 'Dodaj oglas')),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -44,10 +103,11 @@ class _AddAdScreenState extends State<AddAdScreen> {
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
-                  'Moraš biti ulogovan (ne kao gost) da bi dodao oglas.',
+                  'Moraš biti ulogovan (ne kao gost) da bi dodao/izmenio oglas.',
                   style: TextStyle(fontSize: 16),
                 ),
               ),
+
             TextField(
               controller: _title,
               decoration: const InputDecoration(
@@ -56,6 +116,7 @@ class _AddAdScreenState extends State<AddAdScreen> {
               ),
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: _desc,
               decoration: const InputDecoration(
@@ -65,6 +126,7 @@ class _AddAdScreenState extends State<AddAdScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: _price,
               decoration: const InputDecoration(
@@ -73,14 +135,53 @@ class _AddAdScreenState extends State<AddAdScreen> {
               ),
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: _location,
               decoration: const InputDecoration(
-                labelText: 'Lokacija (npr Beograd)',
+                labelText: 'Lokacija (tekst, npr Beograd)',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
+
+            TextField(
+              controller: _imageUrl,
+              decoration: const InputDecoration(
+                labelText: 'Link slike (Image URL)',
+                hintText: 'https://...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ✅ mapa picker
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.map),
+                label: Text(
+                  _pickedLatLng == null
+                      ? 'Izaberi lokaciju na mapi'
+                      : 'Promeni lokaciju na mapi',
+                ),
+                onPressed: (!userProvider.isLoggedIn || userProvider.isGuest)
+                    ? null
+                    : _pickOnMap,
+              ),
+            ),
+            if (_pickedLatLng != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Izabrano: ${_pickedLatLng!.latitude.toStringAsFixed(6)}, ${_pickedLatLng!.longitude.toStringAsFixed(6)}',
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 12),
+
             DropdownButtonFormField<String>(
               value: _category,
               items: const [
@@ -94,19 +195,38 @@ class _AddAdScreenState extends State<AddAdScreen> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 16),
+
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: (!userProvider.isLoggedIn || userProvider.isGuest)
                     ? null
                     : () async {
+                        // validacija
                         if (_title.text.trim().isEmpty ||
                             _desc.text.trim().isEmpty ||
                             _price.text.trim().isEmpty ||
-                            _location.text.trim().isEmpty) {
+                            _location.text.trim().isEmpty ||
+                            _imageUrl.text.trim().isEmpty ||
+                            _pickedLatLng == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Popuni sva polja.')),
+                            const SnackBar(
+                              content: Text(
+                                'Popuni sva polja + dodaj sliku (URL) + izaberi lokaciju na mapi.',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (!_isValidUrl(_imageUrl.text)) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text('Link slike mora da bude http/https.'),
+                            ),
                           );
                           return;
                         }
@@ -114,15 +234,22 @@ class _AddAdScreenState extends State<AddAdScreen> {
                         setState(() => _loading = true);
 
                         try {
+                          final e = widget.existing;
+
                           final ad = Ad(
-                            id: '',
+                            id: isEdit ? e!.id : '',
                             title: _title.text.trim(),
                             description: _desc.text.trim(),
                             price: _price.text.trim(),
                             category: _category,
                             location: _location.text.trim(),
                             userId: userProvider.uid!,
-                            createdAt: DateTime.now(),
+                            createdAt: isEdit ? e!.createdAt : DateTime.now(),
+
+                            // ✅ novo
+                            imageUrl: _imageUrl.text.trim(),
+                            lat: _pickedLatLng!.latitude,
+                            lng: _pickedLatLng!.longitude,
                           );
 
                           await AdsService().addAd(ad);
@@ -143,7 +270,7 @@ class _AddAdScreenState extends State<AddAdScreen> {
                         width: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Dodaj oglas'),
+                    : Text(isEdit ? 'Sačuvaj izmene' : 'Dodaj oglas'),
               ),
             ),
           ],

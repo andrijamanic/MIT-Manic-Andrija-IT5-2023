@@ -10,6 +10,11 @@ class Ad {
   final String userId;
   final DateTime createdAt;
 
+  /// ✅ Novo: slika i koordinate (ručno dodavanje)
+  final String imageUrl;
+  final double? lat;
+  final double? lng;
+
   Ad({
     required this.id,
     required this.title,
@@ -19,6 +24,9 @@ class Ad {
     required this.location,
     required this.userId,
     required this.createdAt,
+    this.imageUrl = '',
+    this.lat,
+    this.lng,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,6 +38,10 @@ class Ad {
       'location': location,
       'userId': userId,
       'createdAt': Timestamp.fromDate(createdAt),
+      // ✅ novo
+      'imageUrl': imageUrl,
+      'lat': lat,
+      'lng': lng,
     };
   }
 
@@ -40,6 +52,12 @@ class Ad {
     DateTime created = DateTime.now();
     if (ts is Timestamp) created = ts.toDate();
 
+    double? readDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString());
+    }
+
     return Ad(
       id: doc.id,
       title: (data['title'] ?? '') as String,
@@ -49,6 +67,9 @@ class Ad {
       location: (data['location'] ?? '') as String,
       userId: (data['userId'] ?? '') as String,
       createdAt: created,
+      imageUrl: (data['imageUrl'] ?? '') as String,
+      lat: readDouble(data['lat']),
+      lng: readDouble(data['lng']),
     );
   }
 }
