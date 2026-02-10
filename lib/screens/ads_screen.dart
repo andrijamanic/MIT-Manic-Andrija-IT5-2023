@@ -26,8 +26,7 @@ class _AdsScreenState extends State<AdsScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
 
-    // ✅ Seed test oglasi (samo ako je prazno) – microtask da bude stabilno
-    Future.microtask(() => _adsService.seedAdsIfEmpty());
+    // ❌ Uklonjeno: seed test oglasa (hardcode)
   }
 
   @override
@@ -126,8 +125,9 @@ class _AdsScreenState extends State<AdsScreen>
   }
 
   Widget _buildAdList(BuildContext context, List<Ad> ads, String category) {
-    if (ads.isEmpty)
+    if (ads.isEmpty) {
       return const Center(child: Text('Nema oglasa u ovoj kategoriji.'));
+    }
 
     return ListView.builder(
       itemCount: ads.length,

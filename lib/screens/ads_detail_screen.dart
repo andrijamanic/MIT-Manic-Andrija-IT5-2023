@@ -8,6 +8,8 @@ import '../providers/user_provider.dart';
 import '../widgets/primary_button.dart';
 import '../services/favorites_services.dart';
 import '../services/reservations_services.dart';
+import '../services/chat_services.dart';
+import 'coversation_screen.dart';
 
 class AdDetailScreen extends StatelessWidget {
   final Ad ad;
@@ -133,7 +135,48 @@ class AdDetailScreen extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
+
+              // ✅ POSALJI PORUKU (samo ako nije tvoj oglas i nisi gost)
+              PrimaryButton(
+                text: isOwner
+                    ? 'Ovo je tvoj oglas'
+                    : isGuest
+                        ? 'Uloguj se da pošalješ poruku'
+                        : 'Pošalji poruku',
+                onPressed: (!userProvider.isLoggedIn ||
+                        isGuest ||
+                        uid == null ||
+                        isOwner)
+                    ? () {}
+                    : () async {
+                        try {
+                          final chatId = await ChatService().createOrGetChat(
+                            adId: ad.id,
+                            adTitle: ad.title,
+                            ownerId: ad.userId,
+                            otherUserId: uid,
+                          );
+
+                          if (!context.mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ConversationScreen(
+                                chatId: chatId,
+                                title: ad.title,
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Greška: $e')),
+                          );
+                        }
+                      },
+              ),
+
+              const SizedBox(height: 12),
 
               // REZERVACIJA (samo za stanove)
               if (ad.category == 'Stanovi')

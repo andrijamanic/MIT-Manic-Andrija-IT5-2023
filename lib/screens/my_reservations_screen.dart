@@ -79,11 +79,31 @@ class _ReservationsList extends StatelessWidget {
     return StreamBuilder<List<Reservation>>(
       stream: stream,
       builder: (context, snap) {
-        if (!snap.hasData)
+        // ✅ najbitnije: prikaži Firestore error (index/rules/field)
+        if (snap.hasError) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Rezervacije greška:\n${snap.error}',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
+
+        if (snap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snap.hasData) {
+          return const Center(child: Text('Nema podataka.'));
+        }
+
         final items = snap.data!;
-        if (items.isEmpty)
+        if (items.isEmpty) {
           return const Center(child: Text('Nema rezervacija.'));
+        }
 
         return ListView.builder(
           itemCount: items.length,
@@ -103,13 +123,17 @@ class _ReservationsList extends StatelessWidget {
                             icon: const Icon(Icons.check),
                             tooltip: 'Prihvati',
                             onPressed: () => ReservationsService().updateStatus(
-                                reservationId: r.id, status: 'accepted'),
+                              reservationId: r.id,
+                              status: 'accepted',
+                            ),
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
                             tooltip: 'Odbij',
                             onPressed: () => ReservationsService().updateStatus(
-                                reservationId: r.id, status: 'rejected'),
+                              reservationId: r.id,
+                              status: 'rejected',
+                            ),
                           ),
                         ],
                       )
@@ -117,7 +141,9 @@ class _ReservationsList extends StatelessWidget {
                         icon: const Icon(Icons.cancel),
                         tooltip: 'Otkaži',
                         onPressed: () => ReservationsService().updateStatus(
-                            reservationId: r.id, status: 'canceled'),
+                          reservationId: r.id,
+                          status: 'canceled',
+                        ),
                       ),
               ),
             );
