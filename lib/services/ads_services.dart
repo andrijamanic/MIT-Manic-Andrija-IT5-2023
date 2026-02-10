@@ -4,7 +4,6 @@ import '../models/ads.dart';
 class AdsService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// Stream svih oglasa (opciono sakrij oglase user-a)
   Stream<List<Ad>> watchAds({String? excludeUserId}) {
     return _db
         .collection('ads')
@@ -17,7 +16,6 @@ class AdsService {
     });
   }
 
-  /// ✅ Ovo ti treba zbog home_screen admin panela (FutureBuilder)
   Future<List<Ad>> getAds() async {
     final snap = await _db
         .collection('ads')

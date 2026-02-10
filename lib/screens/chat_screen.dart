@@ -107,7 +107,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 builder: (context, nameSnap) {
                   final otherName = (nameSnap.data ?? 'Korisnik');
 
-                  // search radi po imenu i last message
                   final combined = ('$otherName $last').toLowerCase();
                   if (searchQuery.isNotEmpty &&
                       !combined.contains(searchQuery.toLowerCase())) {
@@ -124,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         MaterialPageRoute(
                           builder: (_) => ConversationScreen(
                             chatId: doc.id,
-                            title: otherName, // ✅ naslov chata = username
+                            title: otherName, // ✅ username
                           ),
                         ),
                       );

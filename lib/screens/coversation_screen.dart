@@ -48,7 +48,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
               stream: _chatService.watchMessages(widget.chatId),
               builder: (context, snap) {
-                // ✅ error
                 if (snap.hasError) {
                   return Center(
                     child: Padding(
@@ -61,7 +60,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   );
                 }
 
-                // ✅ loading
                 if (snap.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }

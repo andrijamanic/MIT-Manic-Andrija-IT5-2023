@@ -10,6 +10,8 @@ class ChatService {
   }) {
     final a = uid1.compareTo(uid2) <= 0 ? uid1 : uid2;
     final b = uid1.compareTo(uid2) <= 0 ? uid2 : uid1;
+
+    // ⚠️ OSTAVI OVAKO (duple donje crte), da se poklapa sa bazom
     return '${adId}__${a}__${b}';
   }
 
@@ -31,14 +33,19 @@ class ChatService {
         'ownerId': ownerId,
         'participants': [ownerId, otherUserId],
         'lastMessage': '',
+        'lastSenderId': '',
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    } else {
+      // da se chat podigne na vrh liste
+      await ref.update({'updatedAt': FieldValue.serverTimestamp()});
     }
 
     return chatId;
   }
 
+  /// ✅ LISTA CHATOVA za ulogovanog korisnika
   Stream<QuerySnapshot<Map<String, dynamic>>> watchMyChats(String uid) {
     return _db
         .collection('chats')
@@ -47,21 +54,7 @@ class ChatService {
         .snapshots();
   }
 
-  Future<String> getUsername(String uid) async {
-    final doc = await _db.collection('users').doc(uid).get();
-    if (!doc.exists) return 'Korisnik';
-
-    final data = doc.data() as Map<String, dynamic>;
-
-    // Probaj redom kako god ti čuvaš:
-    final username =
-        (data['username'] ?? data['name'] ?? data['fullName'] ?? data['email'])
-            ?.toString();
-
-    if (username == null || username.trim().isEmpty) return 'Korisnik';
-    return username;
-  }
-
+  /// ✅ PORUKE u chatu
   Stream<QuerySnapshot<Map<String, dynamic>>> watchMessages(String chatId) {
     return _db
         .collection('chats')
@@ -71,6 +64,7 @@ class ChatService {
         .snapshots();
   }
 
+  /// ✅ SLANJE PORUKE
   Future<void> sendMessage({
     required String chatId,
     required String senderId,
@@ -91,8 +85,27 @@ class ChatService {
 
       tx.update(chatRef, {
         'lastMessage': trimmed,
+        'lastSenderId': senderId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });
+  }
+
+  /// ✅ USERNAME IZ users/{uid}
+  Future<String> getUsername(String uid) async {
+    if (uid.trim().isEmpty) return 'Korisnik';
+
+    final doc = await _db.collection('users').doc(uid).get();
+    if (!doc.exists) return 'Korisnik';
+
+    final data = doc.data();
+    if (data == null) return 'Korisnik';
+
+    final username = (data['username'] ?? '').toString().trim();
+    if (username.isNotEmpty) return username;
+
+    // fallback
+    final email = (data['email'] ?? '').toString().trim();
+    return email.isNotEmpty ? email : 'Korisnik';
   }
 }
