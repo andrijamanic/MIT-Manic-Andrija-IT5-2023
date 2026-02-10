@@ -10,7 +10,7 @@ class Ad {
   final String userId;
   final DateTime createdAt;
 
-  /// ✅ Novo: slika i koordinate (ručno dodavanje)
+  // ✅ NOVO
   final String imageUrl;
   final double? lat;
   final double? lng;
@@ -38,7 +38,8 @@ class Ad {
       'location': location,
       'userId': userId,
       'createdAt': Timestamp.fromDate(createdAt),
-      // ✅ novo
+
+      // ✅ NOVO
       'imageUrl': imageUrl,
       'lat': lat,
       'lng': lng,
@@ -67,6 +68,8 @@ class Ad {
       location: (data['location'] ?? '') as String,
       userId: (data['userId'] ?? '') as String,
       createdAt: created,
+
+      // ✅ NOVO (ovo je ključno!)
       imageUrl: (data['imageUrl'] ?? '') as String,
       lat: readDouble(data['lat']),
       lng: readDouble(data['lng']),

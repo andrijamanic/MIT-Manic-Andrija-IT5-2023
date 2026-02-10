@@ -30,10 +30,10 @@ class AdsService {
   Future<void> addAd(Ad ad) async {
     final data = ad.toMap();
 
-    if (ad.id.trim().isEmpty) {
+    if (ad.id.isEmpty) {
       await _db.collection('ads').add(data);
     } else {
-      await _db.collection('ads').doc(ad.id).set(data);
+      await _db.collection('ads').doc(ad.id).update(data);
     }
   }
 

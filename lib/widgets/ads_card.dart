@@ -7,7 +7,7 @@ import '../services/favorites_services.dart';
 
 class AdCard extends StatelessWidget {
   final Ad ad;
-  final String imagePath;
+  final String imagePath; // fallback asset
   final VoidCallback onTap;
   final VoidCallback? onReserve;
 
@@ -18,6 +18,17 @@ class AdCard extends StatelessWidget {
     required this.onTap,
     this.onReserve,
   }) : super(key: key);
+
+  Widget _buildImage() {
+    if (ad.imageUrl.trim().isNotEmpty) {
+      return Image.network(
+        ad.imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Image.asset(imagePath, fit: BoxFit.cover),
+      );
+    }
+    return Image.asset(imagePath, fit: BoxFit.cover);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +110,7 @@ class AdCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(imagePath, fit: BoxFit.cover),
+                  child: _buildImage(),
                 ),
               ),
             ],
