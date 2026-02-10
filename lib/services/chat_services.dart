@@ -47,6 +47,21 @@ class ChatService {
         .snapshots();
   }
 
+  Future<String> getUsername(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    if (!doc.exists) return 'Korisnik';
+
+    final data = doc.data() as Map<String, dynamic>;
+
+    // Probaj redom kako god ti čuvaš:
+    final username =
+        (data['username'] ?? data['name'] ?? data['fullName'] ?? data['email'])
+            ?.toString();
+
+    if (username == null || username.trim().isEmpty) return 'Korisnik';
+    return username;
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> watchMessages(String chatId) {
     return _db
         .collection('chats')

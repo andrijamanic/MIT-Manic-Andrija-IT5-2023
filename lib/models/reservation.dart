@@ -5,8 +5,9 @@ class Reservation {
   final String adId;
   final String ownerId;
   final String reservedBy;
-  final String status; // pending/accepted/rejected/canceled
-  final DateTime createdAt;
+  final String status;
+  final DateTime? dateTime;
+  final String? adTitle; // ✅
 
   Reservation({
     required this.id,
@@ -14,32 +15,22 @@ class Reservation {
     required this.ownerId,
     required this.reservedBy,
     required this.status,
-    required this.createdAt,
+    required this.dateTime,
+    required this.adTitle,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'adId': adId,
-      'ownerId': ownerId,
-      'reservedBy': reservedBy,
-      'status': status,
-      'createdAt': Timestamp.fromDate(createdAt),
-    };
-  }
-
   factory Reservation.fromDoc(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-    final ts = data['createdAt'];
-    DateTime created = DateTime.now();
-    if (ts is Timestamp) created = ts.toDate();
+    final data = doc.data() as Map<String, dynamic>;
+    final ts = data['dateTime'];
 
     return Reservation(
       id: doc.id,
       adId: (data['adId'] ?? '') as String,
       ownerId: (data['ownerId'] ?? '') as String,
       reservedBy: (data['reservedBy'] ?? '') as String,
-      status: (data['status'] ?? 'pending') as String,
-      createdAt: created,
+      status: (data['status'] ?? '') as String,
+      dateTime: ts is Timestamp ? ts.toDate() : null,
+      adTitle: data['adTitle'] as String?,
     );
   }
 }

@@ -56,7 +56,6 @@ class _ChatScreenState extends State<ChatScreen> {
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: _chatService.watchMyChats(uid),
         builder: (context, snap) {
-          // ✅ 1) Error grana (najbitnije da ne vrti zauvek)
           if (snap.hasError) {
             return Center(
               child: Padding(
@@ -69,51 +68,67 @@ class _ChatScreenState extends State<ChatScreen> {
             );
           }
 
-          // ✅ 2) Connection state
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // ✅ 3) Nema podataka
           if (!snap.hasData) {
             return const Center(child: Text('Nema podataka.'));
           }
 
           final docs = snap.data!.docs;
 
-          final filtered = docs.where((d) {
-            final data = d.data();
-            final title = (data['adTitle'] ?? '') as String;
-            final last = (data['lastMessage'] ?? '') as String;
-            final combined = ('$title $last').toLowerCase();
-            return combined.contains(searchQuery.toLowerCase());
-          }).toList();
-
-          if (filtered.isEmpty) {
+          if (docs.isEmpty) {
             return const Center(child: Text('Nema chatova.'));
           }
 
           return ListView.builder(
-            itemCount: filtered.length,
+            itemCount: docs.length,
             itemBuilder: (context, i) {
-              final doc = filtered[i];
+              final doc = docs[i];
               final data = doc.data();
-              final adTitle = (data['adTitle'] ?? 'Oglas') as String;
-              final last = (data['lastMessage'] ?? '') as String;
 
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.chat)),
-                title: Text(adTitle),
-                subtitle: Text(last.isEmpty ? 'Nema poruka' : last),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ConversationScreen(
-                        chatId: doc.id,
-                        title: adTitle,
-                      ),
-                    ),
+              final last = (data['lastMessage'] ?? '') as String;
+              final participants =
+                  (data['participants'] ?? []) as List<dynamic>;
+
+              // nađi drugog korisnika
+              String otherUid = '';
+              for (final p in participants) {
+                final s = p.toString();
+                if (s != uid) {
+                  otherUid = s;
+                  break;
+                }
+              }
+
+              return FutureBuilder<String>(
+                future: _chatService.getUsername(otherUid),
+                builder: (context, nameSnap) {
+                  final otherName = (nameSnap.data ?? 'Korisnik');
+
+                  // search radi po imenu i last message
+                  final combined = ('$otherName $last').toLowerCase();
+                  if (searchQuery.isNotEmpty &&
+                      !combined.contains(searchQuery.toLowerCase())) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.person)),
+                    title: Text(otherName),
+                    subtitle: Text(last.isEmpty ? 'Nema poruka' : last),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConversationScreen(
+                            chatId: doc.id,
+                            title: otherName, // ✅ naslov chata = username
+                          ),
+                        ),
+                      );
+                    },
                   );
                 },
               );

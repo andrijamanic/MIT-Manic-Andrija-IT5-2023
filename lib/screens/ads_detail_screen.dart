@@ -100,8 +100,10 @@ class AdDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              Text('Lokacija: ${ad.location}',
-                  style: const TextStyle(fontSize: 16)),
+              Text(
+                'Lokacija: ${ad.location}',
+                style: const TextStyle(fontSize: 16),
+              ),
               const SizedBox(height: 12),
 
               SizedBox(
@@ -178,7 +180,7 @@ class AdDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // REZERVACIJA (samo za stanove)
+              // ✅ REZERVACIJA (samo za stanove) - BIRAS DATUM I VREME, ODMAH "RESERVED"
               if (ad.category == 'Stanovi')
                 PrimaryButton(
                   text: isOwner
@@ -193,17 +195,43 @@ class AdDetailScreen extends StatelessWidget {
                       ? () {}
                       : () async {
                           try {
+                            // 1) datum
+                            final pickedDate = await showDatePicker(
+                              context: context,
+                              initialDate:
+                                  DateTime.now().add(const Duration(days: 1)),
+                              firstDate: DateTime.now(),
+                              lastDate:
+                                  DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (pickedDate == null) return;
+
+                            // 2) vreme
+                            final pickedTime = await showTimePicker(
+                              context: context,
+                              initialTime: const TimeOfDay(hour: 12, minute: 0),
+                            );
+                            if (pickedTime == null) return;
+
+                            final dateTime = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+
                             await ReservationsService().createReservation(
                               adId: ad.id,
                               ownerId: ad.userId,
+                              adTitle: ad.title,
                               reservedBy: uid,
+                              dateTime: dateTime,
                             );
 
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content:
-                                      Text('Rezervacija poslata (pending).')),
+                              const SnackBar(content: Text('Rezervisano!')),
                             );
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(

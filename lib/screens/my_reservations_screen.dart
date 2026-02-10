@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/reservation.dart';
 import '../providers/user_provider.dart';
 import '../services/reservations_services.dart';
@@ -54,11 +57,11 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
         children: [
           _ReservationsList(
             stream: ReservationsService().watchMyReservations(uid),
-            mode: _ReservationMode.my,
+            showCancel: true,
           ),
           _ReservationsList(
             stream: ReservationsService().watchReservationsForMyAds(uid),
-            mode: _ReservationMode.forMyAds,
+            showCancel: false,
           ),
         ],
       ),
@@ -66,20 +69,22 @@ class _MyReservationsScreenState extends State<MyReservationsScreen>
   }
 }
 
-enum _ReservationMode { my, forMyAds }
-
 class _ReservationsList extends StatelessWidget {
   final Stream<List<Reservation>> stream;
-  final _ReservationMode mode;
+  final bool showCancel;
 
-  const _ReservationsList({required this.stream, required this.mode});
+  const _ReservationsList({
+    required this.stream,
+    required this.showCancel,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final fmt = DateFormat('dd.MM.yyyy HH:mm');
+
     return StreamBuilder<List<Reservation>>(
       stream: stream,
       builder: (context, snap) {
-        // ✅ najbitnije: prikaži Firestore error (index/rules/field)
         if (snap.hasError) {
           return Center(
             child: Padding(
@@ -110,41 +115,39 @@ class _ReservationsList extends StatelessWidget {
           itemBuilder: (context, i) {
             final r = items[i];
 
+            final when = r.dateTime != null ? fmt.format(r.dateTime!) : '—';
+            final status = r.status;
+
             return Card(
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               child: ListTile(
-                title: Text('Oglas: ${r.adId}'),
-                subtitle: Text('Status: ${r.status}'),
-                trailing: mode == _ReservationMode.forMyAds
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.check),
-                            tooltip: 'Prihvati',
-                            onPressed: () => ReservationsService().updateStatus(
-                              reservationId: r.id,
-                              status: 'accepted',
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            tooltip: 'Odbij',
-                            onPressed: () => ReservationsService().updateStatus(
-                              reservationId: r.id,
-                              status: 'rejected',
-                            ),
-                          ),
-                        ],
-                      )
-                    : IconButton(
+                title: (r.adTitle != null && r.adTitle!.trim().isNotEmpty)
+                    ? Text(r.adTitle!)
+                    : FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('ads')
+                            .doc(r.adId)
+                            .get(),
+                        builder: (context, adSnap) {
+                          if (!adSnap.hasData) return Text(r.adId);
+                          if (!adSnap.data!.exists) return Text(r.adId);
+
+                          final data =
+                              adSnap.data!.data() as Map<String, dynamic>;
+                          final title = (data['title'] ?? r.adId).toString();
+                          return Text(title);
+                        },
+                      ),
+                subtitle: Text('Termin: $when\nStatus: $status'),
+                trailing: showCancel && status != 'canceled'
+                    ? IconButton(
                         icon: const Icon(Icons.cancel),
                         tooltip: 'Otkaži',
-                        onPressed: () => ReservationsService().updateStatus(
-                          reservationId: r.id,
-                          status: 'canceled',
-                        ),
-                      ),
+                        onPressed: () async {
+                          await ReservationsService().cancelReservation(r.id);
+                        },
+                      )
+                    : null,
               ),
             );
           },
