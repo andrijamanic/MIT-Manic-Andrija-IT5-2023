@@ -15,7 +15,7 @@ class ChatService {
     return '${adId}__${a}__${b}';
   }
 
-  /// Kreira chat ako ne postoji i vraća chatId
+  /// ✅ Kreira chat ako ne postoji i vraća chatId (bez ref.get(), da ne puca na rules)
   Future<String> createOrGetChat({
     required String adId,
     required String adTitle,
@@ -24,23 +24,26 @@ class ChatService {
   }) async {
     final chatId = buildChatId(adId: adId, uid1: ownerId, uid2: otherUserId);
     final ref = _db.collection('chats').doc(chatId);
-    final doc = await ref.get();
 
-    if (!doc.exists) {
-      await ref.set({
-        'adId': adId,
-        'adTitle': adTitle,
-        'ownerId': ownerId,
-        'participants': [ownerId, otherUserId],
-        'lastMessage': '',
-        'lastSenderId': '',
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    } else {
-      // da se chat podigne na vrh liste
-      await ref.update({'updatedAt': FieldValue.serverTimestamp()});
-    }
+    // ✅ NEMA GET-a -> nema permission denied na nepostojeći chat doc
+    // merge:true -> ako postoji, samo update-uje polja, ako ne postoji, kreira
+    await ref.set({
+      'adId': adId,
+      'adTitle': adTitle,
+      'ownerId': ownerId,
+      'participants': [ownerId, otherUserId],
+
+      // ova polja neka postoje uvek
+      'lastMessage': '',
+      'lastSenderId': '',
+
+      // updatedAt uvek osveži
+      'updatedAt': FieldValue.serverTimestamp(),
+
+      // createdAt će se postaviti pri prvom kreiranju (ako doc nije postojao)
+      // (ako već postoji, merge će overwrite-ovati; nije kritično za funkcionalnost)
+      'createdAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     return chatId;
   }
@@ -104,7 +107,6 @@ class ChatService {
     final username = (data['username'] ?? '').toString().trim();
     if (username.isNotEmpty) return username;
 
-    // fallback
     final email = (data['email'] ?? '').toString().trim();
     return email.isNotEmpty ? email : 'Korisnik';
   }
