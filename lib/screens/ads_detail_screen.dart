@@ -45,6 +45,8 @@ class AdDetailScreen extends StatelessWidget {
         ? LatLng(ad.lat!, ad.lng!)
         : getCoordinates(ad.location);
 
+    final url = ad.imageUrl.trim(); // ✅ BITNO
+
     return Scaffold(
       appBar: AppBar(
         title: Text(ad.title),
@@ -81,9 +83,9 @@ class AdDetailScreen extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: (ad.imageUrl.trim().isNotEmpty)
+                child: (url.isNotEmpty)
                     ? Image.network(
-                        ad.imageUrl,
+                        url, // ✅ koristi trimovan url
                         width: double.infinity,
                         height: 200,
                         fit: BoxFit.cover,

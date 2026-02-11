@@ -20,9 +20,11 @@ class AdCard extends StatelessWidget {
   }) : super(key: key);
 
   Widget _buildImage() {
-    if (ad.imageUrl.trim().isNotEmpty) {
+    final url = ad.imageUrl.trim(); // ✅ BITNO
+
+    if (url.isNotEmpty) {
       return Image.network(
-        ad.imageUrl,
+        url, // ✅ koristi trimovan url
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => Image.asset(imagePath, fit: BoxFit.cover),
       );
@@ -56,7 +58,9 @@ class AdCard extends StatelessWidget {
                           child: Text(
                             ad.title,
                             style: const TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                           ),
                         ),
                         if (canFavorite)
@@ -81,13 +85,18 @@ class AdCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(ad.description,
-                        maxLines: 3, overflow: TextOverflow.ellipsis),
+                    Text(
+                      ad.description,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 6),
                     Text(
                       ad.price,
                       style: const TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.green),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
                     ),
                     if (ad.category == 'Stanovi' && onReserve != null)
                       Align(
