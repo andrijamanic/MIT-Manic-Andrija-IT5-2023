@@ -31,7 +31,10 @@ dependencies:
   shared_preferences: ^2.5.3
   provider: ^6.1.5+1
 
-  # Google Maps
+  # HTTP (za autocomplete lokacije / API integracije)
+  http: ^1.2.2
+
+  # Map
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
 
